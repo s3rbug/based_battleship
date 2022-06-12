@@ -23,14 +23,14 @@ class Button:
     print_message_for_button(): Prints explanatory message next to button
     """
 
-    def __init__(self, x_offset, button_title, message_to_show, screen):
+    def __init__(self, x_offset, button_title, message_to_show, screen, y_offset=10):
         self.__title = button_title
         self.__title_width, self.__title_height = font.size(self.__title)
         self.__message = message_to_show
         self.__button_width = self.__title_width + block_size
         self.__button_height = self.__title_height + block_size
         self.__x_start = x_offset
-        self.__y_start = upper_margin + 10 * block_size + self.__button_height
+        self.__y_start = upper_margin + y_offset * block_size + self.__button_height
         self.rect_for_draw = self.__x_start, self.__y_start, self.__button_width, self.__button_height
         self.rect = pygame.Rect(self.rect_for_draw)
         self.__rect_for_button_title = (self.__x_start + self.__button_width / 2 -
@@ -38,6 +38,12 @@ class Button:
                                         self.__button_height / 2 - self.__title_height / 2)
         self.__color = colors.BLACK
         self.__screen = screen
+
+    def button_size(self):
+        """
+                Returns button width and height
+        """
+        return self.__button_width, self.__button_height
 
     def draw_button(self, color=None):
         """

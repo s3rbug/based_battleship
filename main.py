@@ -33,7 +33,7 @@ class Main:
         # Screen parameters
         self.computer = AutoShips(0)
         self.computer_ships_working = copy.deepcopy(self.computer.ships)
-        self.screen = pygame.display.set_mode((0, 0))
+        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         # This ratio is purely for scaling the font according to the block size
         self.game_over_font = pygame.font.SysFont('arial', 3 * block_size)
         # Create AUTO and MANUAL buttons and explanatory message for them
@@ -47,8 +47,8 @@ class Main:
 
         # Create PLAY AGAIN and QUIT buttons and message for them
         self.play_again_button = Button(left_margin + 15 * block_size, "PLAY AGAIN",
-                                        "Do you want to play again or quit?", self.screen)
-        self.quit_game_button = Button(left_margin + 20 * block_size, "QUIT", "", self.screen)
+                                        "Do you want to play again?", self.screen)
+        self.quit_game_button = Button(left_margin + 26 * block_size, "QUIT", "", self.screen, -4)
 
         self.rect_for_grids = (0, 0, size[0], upper_margin + 12 * block_size)
         self.rect_for_messages_and_buttons = (
@@ -78,6 +78,8 @@ class Main:
         while self.ships_creation_not_decided:
             self.auto_button.draw_button()
             self.manual_button.draw_button()
+            self.quit_game_button.draw_button()
+            self.quit_game_button.change_color_on_hover()
             self.auto_button.change_color_on_hover()
             self.manual_button.change_color_on_hover()
             self.auto_button.print_message_for_button()
@@ -85,9 +87,11 @@ class Main:
             mouse = pygame.mouse.get_pos()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.game_over = True
-                    self.ships_creation_not_decided = False
-                    self.ships_not_created = False
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN and self.quit_game_button.rect.collidepoint(mouse):
+                    pygame.quit()
+                    sys.exit()
                 # If AUTO button is pressed - create human ships automatically
                 elif event.type == pygame.MOUSEBUTTONDOWN and self.auto_button.rect.collidepoint(mouse):
                     human = AutoShips(15)
@@ -107,6 +111,8 @@ class Main:
             Grid("COMPUTER", 0, self.screen)
             Grid("HUMAN", 15, self.screen)
             self.undo_button.draw_button()
+            self.quit_game_button.draw_button()
+            self.quit_game_button.change_color_on_hover()
             self.undo_button.print_message_for_button()
             self.undo_button.change_color_on_hover()
             mouse = pygame.mouse.get_pos()
@@ -114,8 +120,11 @@ class Main:
                 self.undo_button.draw_button(colors.LIGHT_GRAY)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.ships_not_created = False
-                    self.game_over = True
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN and self.quit_game_button.rect.collidepoint(mouse):
+                    pygame.quit()
+                    sys.exit()
                 elif self.undo_button.rect.collidepoint(mouse) and event.type == pygame.MOUSEBUTTONDOWN:
                     if self.human_ships_to_draw:
                         self.screen.fill(colors.WHITE, self.message_rect_for_drawing_ships)
@@ -185,20 +194,33 @@ class Main:
                 pygame.draw.rect(self.screen, colors.BLACK, (changed_start, abs_ship_size), 3)
             self.draw_ships(self.human_ships_to_draw)
             pygame.display.update()
-        shown = False
+        shown_message = False
         while not self.game_over:
+            self.quit_game_button.draw_button()
+            self.quit_game_button.change_color_on_hover()
             self.draw_ships(self.destroyed_computer_ships)
             self.draw_ships(self.human_ships_to_draw)
+            mouse = pygame.mouse.get_pos()
             if not (self.dotted_set | self.hit_blocks):
-                if not shown:
+                if not shown_message:
                     self.show_message_at_rect_center(
                         "GAME STARTED! YOUR MOVE!", self.message_rect_computer)
-                shown = True
+                shown_message = True
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.game_over = True
+                    pygame.quit()
+                    sys.exit()
+                elif not self.computer_turn and event.type == pygame.MOUSEBUTTONDOWN \
+                        and self.quit_game_button.rect.collidepoint(mouse):
+                    pygame.quit()
+                    sys.exit()
                 elif not self.computer_turn and event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
+                    width, height = self.quit_game_button.button_size()
+                    if left_margin + 26 * block_size < x < left_margin + 26 * block_size + width and \
+                            upper_margin - 4 * block_size + height < y < upper_margin - 4 * block_size + 2 * height:
+                        pygame.quit()
+                        sys.exit()
                     if (left_margin < x < left_margin + 10 * block_size) and (
                             upper_margin < y < upper_margin + 10 * block_size):
                         fired_block = ((x - left_margin) // block_size + 1,
@@ -234,6 +256,9 @@ class Main:
                     self.message_rect_human,
                     color=colors.BLACK)
             if not self.computer.ships_set:
+                self.draw_hit_blocks(self.hit_blocks)
+                self.draw_ships(self.destroyed_computer_ships)
+                self.draw_ships(self.human_ships_to_draw)
                 self.show_message_at_rect_center(
                     "YOU WON!", (0, 0, size[0], size[1]), self.game_over_font, color=colors.GREEN)
                 self.game_over = True
@@ -242,7 +267,6 @@ class Main:
                     "YOU LOST!", (0, 0, size[0], size[1]), self.game_over_font)
                 self.game_over = True
             pygame.display.update()
-
         while self.game_over:
             self.screen.fill(colors.WHITE, self.rect_for_messages_and_buttons)
             self.play_again_button.draw_button()
