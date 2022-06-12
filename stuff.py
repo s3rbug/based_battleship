@@ -17,4 +17,4 @@ upper_margin = round(3.5 * block_size)
 size = (left_margin + 30 * block_size, upper_margin + 15 * block_size)
 LETTERS = "ABCDEFGHIJ"
 font_size = int(block_size / 1.5)
-font = pygame.font.SysFont('notosans', font_size)
+font = pygame.font.SysFont('notosans', font_size, bold=False)

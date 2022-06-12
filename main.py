@@ -11,16 +11,16 @@ from Grid import Grid
 
 class Main:
     def __init__(self):
+        pygame.init()
+        pygame.display.set_caption("Battleship")
         self.computer_available_to_fire_set = {(x, y) for x in range(16, 26) for y in range(1, 11)}
         self.around_last_computer_hit_set = set()
         self.dotted_set_for_computer_not_to_shoot = set()
         self.hit_blocks_for_computer_not_to_shoot = set()
         self.last_hits_list = []
-
         self.hit_blocks = set()
         self.dotted_set = set()
         self.destroyed_computer_ships = []
-
         self.ships_creation_not_decided = True
         self.ships_not_created = True
         self.drawing = False
@@ -30,28 +30,25 @@ class Main:
         self.end = (0, 0)
         self.ship_size = (0, 0)
         self.human_ships_working = None
-        self.should_be_drawn = False
+        # Screen parameters
+        self.computer = AutoShips(0)
+        self.computer_ships_working = copy.deepcopy(self.computer.ships)
+        self.screen = pygame.display.set_mode((0, 0))
+        # This ratio is purely for scaling the font according to the block size
+        self.game_over_font = pygame.font.SysFont('arial', 3 * block_size)
         # Create AUTO and MANUAL buttons and explanatory message for them
-        self.auto_button_place = left_margin + 17 * block_size
-        self.manual_button_place = left_margin + 20 * block_size
-        self.how_to_create_ships_message = "How do you want to create your ships? Click the button"
-        self.auto_button = Button(self.auto_button_place, "AUTO", self.how_to_create_ships_message)
-        self.manual_button = Button(self.manual_button_place, "MANUAL",
-                                    self.how_to_create_ships_message)
-
+        self.auto_button = Button(left_margin + 17 * block_size,
+                                  "AUTO", "How do you want to create your ships? Click the button", self.screen)
+        self.manual_button = Button(left_margin + 20 * block_size, "MANUAL",
+                                    "How do you want to create your ships? Click the button", self.screen)
         # Create UNDO message and button
-        self.undo_message = "To undo the last ship click the button"
-        self.undo_button_place = left_margin + 12 * block_size
-        self.undo_button = Button(self.undo_button_place, "UNDO LAST SHIP", self.undo_message)
+        self.undo_button = Button(left_margin + 12 * block_size, "UNDO LAST SHIP",
+                                  "To undo the last ship click the button", self.screen)
 
         # Create PLAY AGAIN and QUIT buttons and message for them
-        self.play_again_message = "Do you want to play again or quit?"
-        self.play_again_button = Button(left_margin + 15 * block_size, "PLAY AGAIN", self.play_again_message)
-        self.quit_game_button = Button(self.manual_button_place, "QUIT", self.play_again_message)
-
-        # This ratio is purely for scaling the font according to the block size
-        self.game_over_font_size = 3 * block_size
-        self.game_over_font = pygame.font.SysFont('notosans', self.game_over_font_size)
+        self.play_again_button = Button(left_margin + 15 * block_size, "PLAY AGAIN",
+                                        "Do you want to play again or quit?", self.screen)
+        self.quit_game_button = Button(left_margin + 20 * block_size, "QUIT", "", self.screen)
 
         self.rect_for_grids = (0, 0, size[0], upper_margin + 12 * block_size)
         self.rect_for_messages_and_buttons = (
@@ -73,39 +70,10 @@ class Main:
         self.used_blocks_for_manual_drawing = set()
         self.num_ships_list = [0, 0, 0, 0]
 
-        self.computer = AutoShips(0)
-        self.computer_ships_working = copy.deepcopy(self.computer.ships)
-        self.screen = pygame.display.set_mode((0, 0))
-
-        pygame.init()
-        pygame.display.set_caption("BATTLESHIP")
-
-    @staticmethod
-    def get_start_block(x_start, y_start):
-        return ((x_start - left_margin) // block_size + 1,
-                     (y_start - upper_margin) // block_size + 1)
-
-    @staticmethod
-    def get_end_block(x_end, y_end):
-        return ((x_end - left_margin) // block_size + 1,
-                     (y_end - upper_margin) // block_size + 1)
-
-    def check_if_inside_of_board(self, x_start, y_start, x_end, y_end):
-        """Check if coordinates are out of board range"""
-        start_block = self.get_start_block(x_start, y_start)
-        end_block = self.get_end_block(x_end, y_end)
-        if start_block > end_block:
-            start_block, end_block = end_block, start_block
-        if 15 < start_block[0] < 26 and 0 < start_block[1] < 11 and 15 < end_block[0] < 26 \
-                and 0 < end_block[1] < 11:
-            return True
-        else:
-            return False
-
     def game(self):
         self.screen.fill(colors.WHITE)
-        Grid("COMPUTER", 0)
-        Grid("HUMAN", 15)
+        Grid("COMPUTER", 0, self.screen)
+        Grid("HUMAN", 15, self.screen)
 
         while self.ships_creation_not_decided:
             self.auto_button.draw_button()
@@ -133,11 +101,11 @@ class Main:
 
             pygame.display.update()
             self.screen.fill(colors.WHITE, self.rect_for_messages_and_buttons)
-
+        x_start = y_start = 0
         while self.ships_not_created:
             self.screen.fill(colors.WHITE, self.rect_for_grids)
-            Grid("COMPUTER", 0)
-            Grid("HUMAN", 15)
+            Grid("COMPUTER", 0, self.screen)
+            Grid("HUMAN", 15, self.screen)
             self.undo_button.draw_button()
             self.undo_button.print_message_for_button()
             self.undo_button.change_color_on_hover()
@@ -184,10 +152,10 @@ class Main:
                                 temp_ship.append((block, start_block[1]))
                         else:
                             self.show_message_at_rect_center(
-                                "SHIP IS TOO LARGE! Try again!", self.message_rect_for_drawing_ships)
+                                "Ship is too large! Try again!", self.message_rect_for_drawing_ships)
                     else:
                         self.show_message_at_rect_center(
-                            "SHIP IS BEYOND YOUR GRID! Try again!", self.message_rect_for_drawing_ships)
+                            "Ship is beyond your grid! Try again!", self.message_rect_for_drawing_ships)
                     if temp_ship:
                         temp_ship_set = set(temp_ship)
                         if self.ship_is_valid(temp_ship_set, self.used_blocks_for_manual_drawing):
@@ -203,7 +171,7 @@ class Main:
                                     self.message_rect_for_drawing_ships)
                         else:
                             self.show_message_at_rect_center(
-                                "SHIPS ARE TOUCHING! Try again", self.message_rect_for_drawing_ships)
+                                "Ships are touching! Try again", self.message_rect_for_drawing_ships)
                 if len(self.human_ships_to_draw) == 10:
                     self.ships_not_created = False
                     self.human_ships_working = copy.deepcopy(self.human_ships_to_draw)
@@ -211,16 +179,21 @@ class Main:
             x_start, y_start = self.start
             x_end, y_end = self.end
             if self.check_if_inside_of_board(x_start, y_start, x_end, y_end):
-                pygame.draw.rect(self.screen, colors.BLACK, (self.start, self.ship_size), 3)
+                abs_ship_size = abs(self.ship_size[0]), abs(self.ship_size[1])
+                changed_start = (self.start[0] if self.ship_size[0] >= 0 else self.start[0] + self.ship_size[0],
+                                 self.start[1] if self.ship_size[1] >= 0 else self.start[1] + self.ship_size[1])
+                pygame.draw.rect(self.screen, colors.BLACK, (changed_start, abs_ship_size), 3)
             self.draw_ships(self.human_ships_to_draw)
             pygame.display.update()
-
+        shown = False
         while not self.game_over:
             self.draw_ships(self.destroyed_computer_ships)
             self.draw_ships(self.human_ships_to_draw)
             if not (self.dotted_set | self.hit_blocks):
-                self.show_message_at_rect_center(
-                    "GAME STARTED! YOUR MOVE!", self.message_rect_computer)
+                if not shown:
+                    self.show_message_at_rect_center(
+                        "GAME STARTED! YOUR MOVE!", self.message_rect_computer)
+                shown = True
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.game_over = True
@@ -291,10 +264,32 @@ class Main:
                     self.game()
             pygame.display.update()
 
+    @staticmethod
+    def get_start_block(x_start, y_start):
+        """Calculates index of start block in the grid"""
+        return ((x_start - left_margin) // block_size + 1,
+                (y_start - upper_margin) // block_size + 1)
+
+    @staticmethod
+    def get_end_block(x_end, y_end):
+        """Calculates index of end block in the grid"""
+        return ((x_end - left_margin) // block_size + 1,
+                (y_end - upper_margin) // block_size + 1)
+
+    def check_if_inside_of_board(self, x_start, y_start, x_end, y_end):
+        """Check if coordinates are out of board range"""
+        start_block = self.get_start_block(x_start, y_start)
+        end_block = self.get_end_block(x_end, y_end)
+        if start_block > end_block:
+            start_block, end_block = end_block, start_block
+        if 15 < start_block[0] < 26 and 0 < start_block[1] < 11 and 15 < end_block[0] < 26 \
+                and 0 < end_block[1] < 11:
+            return True
+        else:
+            return False
+
     def computer_shoots(self, set_to_shoot_from):
-        """
-        Randomly chooses a block from available to shoot from set
-        """
+        """Randomly chooses a block from available to shoot from set"""
         computer_fired_block = random.choice(tuple(set_to_shoot_from))
         self.computer_available_to_fire_set.discard(computer_fired_block)
         return computer_fired_block
@@ -303,7 +298,7 @@ class Main:
                           opponents_ships_list_original_copy, opponents_ships_set):
         """
         Checks whether the block that was shot at either by computer or by human is a hit or a miss.
-        Updates sets with dots (in missed blocks or in diagonal blocks around hit block) and 'X's
+        Update sets with dots (in missed blocks or in diagonal blocks around hit block) and 'X's
         (in hit blocks).
         Removes destroyed ships from the list of ships.
         """
@@ -355,7 +350,7 @@ class Main:
     def update_around_last_computer_hit(self, fired_block, computer_hits):
         """
         Updates around_last_computer_hit_set (which is used to choose for computer to fire from) if it
-        hit the ship but not destroyed it). Adds to this set vertical or horizontal blocks around the
+        hit the ship but not destroyed it. Adds to this set vertical or horizontal blocks around the
         block that was last hit. Then removes those block from that set which were shot at but missed.
         around_last_computer_hit_set makes computer choose the right blocks to quickly destroy the ship
         instead of just randomly shooting at completely random blocks.

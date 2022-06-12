@@ -6,17 +6,17 @@ class AutoShips:
     Randomly create all player's ships on a grid
     ----------
     Attributes:
-        offset (int): Where the grid starts (in number of blocks)
-                (typically 0 for computer and 15 for human)
+        offset (int): Where the grid starts (in number of blocks);
+                (typically 0 for computer and 15 for human);
         available_blocks (set of tuples): coordinates of all blocks
-                that are available for creating ships (updated every time a ship is created)
-        ships_set (set of tuples): all blocks that are occupied by ships
-        ships (list of lists): list of all individual ships (as lists)
+                that are available for creating ships (updated every time a ship is created);
+        ships_set (set of tuples): all blocks that are occupied by ships;
+        ships (list of lists): list of all individual ships (as lists);
     ----------
     Methods:
         __create_start_block(available_blocks):
             Randomly chooses a block from which to start creating a ship.
-            Randomly chooses horizontal or vertical type of a ship
+            Randomly chooses horizontal or vertical type of ship
             Randomly chooses direction (from the start block) - straight or reverse
             Returns three randomly chosen values
         __create_ship(number_of_blocks, available_blocks):
@@ -49,11 +49,11 @@ class AutoShips:
         """
         Parameters:
         offset (int): Where the grid starts (in number of blocks)
-                (typically 0 for computer and 15 for human)
+                (typically 0 for computer and 15 for human);
         available_blocks (set of tuples): coordinates of all blocks
-                that are available for creating ships (updated every time a ship is created)
-        ships_set (set of tuples): all blocks that are occupied by ships
-        ships (list of lists): list of all individual ships (as lists)"""
+                that are available for creating ships (updated every time a ship is created);
+        ships_set (set of tuples): all blocks that are occupied by ships;
+        ships (list of lists): list of all individual ships (as lists);"""
 
         self.offset = offset
         self.available_blocks = {(x, y) for x in range(
@@ -66,7 +66,7 @@ class AutoShips:
     def __create_start_block(self, available_blocks):
         """
         Randomly chooses a block from which to start creating a ship.
-        Randomly chooses horizontal or vertical type of a ship
+        Randomly chooses horizontal or vertical type of ship
         Randomly chooses direction (from the start block) - straight or reverse
         Args:
             available_blocks (set of tuples): coordinates of all blocks

@@ -1,6 +1,5 @@
 import colors
 import pygame
-from computer_stuff import screen
 from stuff import left_margin, upper_margin, block_size, font, font_size, LETTERS
 
 
@@ -12,6 +11,7 @@ class Grid:
         title (str): Players' name to be displayed on the top of his grid
         offset (int): Where the grid starts (in number of blocks)
                 (typically 0 for computer and 15 for human)
+        screen: Screen
     ----------
     Methods:
     __draw_grid(): Draws two grids for both players
@@ -20,14 +20,16 @@ class Grid:
     __sign_grid(): Puts players' names (titles) in the center above the grids
     """
 
-    def __init__(self, title, offset):
+    def __init__(self, title, offset, screen):
         """
         title(str): Players' name to be displayed on the top of his grid
         offset (int): Where the grid starts (in number of blocks)
         (typically 0 for computer and 15 for human)
+        screen: Screen
         """
         self.title = title
         self.offset = offset
+        self.__screen = screen
         self.__draw_grid()
         self.__add_nums_letters_to_grid()
         self.__sign_grid()
@@ -38,11 +40,11 @@ class Grid:
         """
         for i in range(11):
             # Horizontal lines
-            pygame.draw.line(screen, colors.BLACK,
+            pygame.draw.line(self.__screen, colors.BLACK,
                              (left_margin + self.offset * block_size, upper_margin + i * block_size),
                              (left_margin + (10 + self.offset) * block_size, upper_margin + i * block_size), 1)
             # Vertical lines
-            pygame.draw.line(screen, colors.BLACK,
+            pygame.draw.line(self.__screen, colors.BLACK,
                              (left_margin + (i + self.offset) * block_size, upper_margin),
                              (left_margin + (i + self.offset) * block_size, upper_margin + 10 * block_size), 1)
 
@@ -59,12 +61,13 @@ class Grid:
             letters_hor_width = letters_hor.get_width()
 
             # Numbers (vertical)
-            screen.blit(num_ver, (left_margin - (block_size // 2 + num_ver_width // 2) + self.offset * block_size,
-                                  upper_margin + i * block_size + (block_size // 2 - num_ver_height // 2)))
+            self.__screen.blit(num_ver,
+                               (left_margin - (block_size // 2 + num_ver_width // 2) + self.offset * block_size,
+                                upper_margin + i * block_size + (block_size // 2 - num_ver_height // 2)))
             # Letters (horizontal)
-            screen.blit(letters_hor, (left_margin + i * block_size +
-                                      (block_size // 2 - letters_hor_width // 2) + self.offset * block_size,
-                                      10 + upper_margin + 10 * block_size))
+            self.__screen.blit(letters_hor, (left_margin + i * block_size +
+                                             (block_size // 2 - letters_hor_width // 2) + self.offset * block_size,
+                                             10 + upper_margin + 10 * block_size))
 
     def __sign_grid(self):
         """
@@ -72,5 +75,5 @@ class Grid:
         """
         player = font.render(self.title, True, colors.BLACK)
         sign_width = player.get_width()
-        screen.blit(player, (left_margin + 5 * block_size - sign_width // 2 +
-                             self.offset * block_size, upper_margin - block_size // 2 - font_size))
+        self.__screen.blit(player, (left_margin + 5 * block_size - sign_width // 2 +
+                                    self.offset * block_size, upper_margin - block_size // 2 - font_size))
